@@ -4,34 +4,36 @@ using UnityEngine;
 
 public class ParticleSeeker : MonoBehaviour {
 
-    public Transform target;
-    public Transform target2;
     public float forceMultiplier = 0.5f;
+
     ParticleSystem ps;
     public Gradient particleColourGradient;
     float g = 1f;
-    float mass = 10f;
+    float mass = 5f;
+    int numAttractors = 3;
+    GameObject[] attractors;
 
     // Use this for initialization
     void Start () {
         ps = GetComponent<ParticleSystem>();
-        
-        
+        initAttractors();
     }
 
     void Update()
     {
+        // add variation to particle colour
         ParticleSystem.MainModule main = GetComponent<ParticleSystem>().main;
         main.startColor = particleColourGradient.Evaluate(Random.Range(0f,1f));
     }
 
     void LateUpdate () {
+
+        //put particles of the system into array & update them to gravity algorithm
         ParticleSystem.Particle[] particles = new ParticleSystem.Particle[ps.particleCount]; 
-        ps.GetParticles(particles); //put particles of the system into array
+        ps.GetParticles(particles); 
 
         for (int i = 0; i < particles.Length; i++){
             ParticleSystem.Particle p = particles[i];
-
             Vector3 particleWorldPosition;
             if(ps.main.simulationSpace == ParticleSystemSimulationSpace.Local)
             {
@@ -45,12 +47,7 @@ public class ParticleSeeker : MonoBehaviour {
                 particleWorldPosition = p.position;
             }
 
-            // gravitational attraction alog from
-            // https://github.com/shiffman/The-Nature-of-Code-Examples/blob/master/chp02_forces/Exercise_2_10_attractrepel/Attractor.pde
-            Vector3 directionToTarget = (target.position - particleWorldPosition).normalized;
-            Vector3 directionToTarget2 = (target2.position - particleWorldPosition).normalized;
-
-            Vector3 direction = directionToTarget + directionToTarget2;
+            Vector3 direction = applyGravity(particleWorldPosition);
             float magnitude = direction.magnitude;
             Mathf.Clamp(magnitude, 5.0f, 10.0f); //eliminate extreme result for very close or very far objects
 
@@ -59,10 +56,31 @@ public class ParticleSeeker : MonoBehaviour {
             Vector3 seekForce = ((direction) * gforce) * Time.deltaTime;
             seekForce = seekForce * forceMultiplier; 
 
-
             p.velocity += seekForce;
             particles[i] = p;
         }
         ps.SetParticles(particles, particles.Length); //set updated particles into the system
 	}
+
+    Vector3 applyGravity(Vector3 particleWorldPosition)
+    {
+        Vector3 direction = Vector3.zero;
+        foreach (GameObject a in attractors)
+        {
+            direction += (a.transform.position - particleWorldPosition).normalized;
+        }
+        return direction;
+    }
+
+    void initAttractors()
+    {
+        attractors = new GameObject[numAttractors];
+        for (int i = 0; i < numAttractors; i++)
+        {
+            GameObject newAttractor = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            newAttractor.transform.position = new Vector3(i*3, 2.0f, 0);
+            newAttractor.transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
+            attractors[i] = newAttractor;
+        }
+    }
 }
