@@ -4,12 +4,12 @@ using UnityEngine;
 
 public class ParticleSeeker : MonoBehaviour {
 
+    public Gradient particleColourGradient;
     public float forceMultiplier = 0.5f;
+    public float g = 1f;
+    public float mass = 3f;
 
     ParticleSystem ps;
-    public Gradient particleColourGradient;
-    float g = 1f;
-    float mass = 5f;
     int numAttractors = 3;
     GameObject[] attractors;
 
