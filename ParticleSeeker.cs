@@ -6,8 +6,8 @@ public class ParticleSeeker : MonoBehaviour {
 
     public Gradient particleColourGradient;
     public float forceMultiplier = 1.0f;
-    public float g = 1f;
-    public float mass = 3f;
+    float g = 1f;
+    float mass = 3f;
 
     ParticleSystem ps;
     int numAttractors = 3;
@@ -60,7 +60,9 @@ public class ParticleSeeker : MonoBehaviour {
             //Vector3 right = Vector3.Cross(totalForce, Vector3.up);
             //totalForce = Quaternion.AngleAxis(0, right) * totalForce;
 
-            p.velocity += totalForce;
+            //p.velocity += totalForce; //with  acceleration
+            p.velocity = totalForce;    //velocity only to visualise field line style
+            
             particles[i] = p;
         }
         ps.SetParticles(particles, particles.Length); //set updated particles into the system
@@ -94,19 +96,31 @@ public class ParticleSeeker : MonoBehaviour {
     }
 
     Vector3 applyElectric(ParticleSystem.Particle p) {
-        Vector3 totalForce = p.velocity;
+        Vector3 totalForce = Vector3.zero;
         Vector3 force = Vector3.zero;
+        int i = 0;
         foreach (GameObject a in attractors)
         {
             float dist = Vector3.Distance(p.position, a.transform.position) * 100000;
             float fieldMag = 99999 / dist * dist;
             Mathf.Clamp(fieldMag, 0.0f, 5.0f);
 
-            force.x -= fieldMag * (p.position.x - a.transform.position.x) / dist;
-            force.y -= fieldMag * (p.position.y - a.transform.position.y) / dist;
-            force.z -= fieldMag * (p.position.z - a.transform.position.z) / dist;
+            //alternate postive and negative charges
+            if(i % 2 == 0)
+            {
+                force.x -= fieldMag * (p.position.x - a.transform.position.x) / dist;
+                force.y -= fieldMag * (p.position.y - a.transform.position.y) / dist;
+                force.z -= fieldMag * (p.position.z - a.transform.position.z) / dist;
+            } else
+            {
+                force.x += fieldMag * (p.position.x - a.transform.position.x) / dist;
+                force.y += fieldMag * (p.position.y - a.transform.position.y) / dist;
+                force.z += fieldMag * (p.position.z - a.transform.position.z) / dist;
+            }
+
+            i++;
         }
-        totalForce = force * forceMultiplier;
+        totalForce = force * forceMultiplier; 
         return totalForce;
     }
 
@@ -116,7 +130,7 @@ public class ParticleSeeker : MonoBehaviour {
         for (int i = 0; i < numAttractors; i++)
         {
             GameObject newAttractor = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            newAttractor.transform.position = new Vector3(i*3, 2.0f, 0);
+            newAttractor.transform.position = new Vector3(i*3, 2.0f, i*3);
             newAttractor.transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
             attractors[i] = newAttractor;
         }
