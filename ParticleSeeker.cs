@@ -5,7 +5,7 @@ using UnityEngine;
 public class ParticleSeeker : MonoBehaviour {
 
     public Gradient particleColourGradient;
-    public float forceMultiplier = 0.5f;
+    public float forceMultiplier = 1.0f;
     public float g = 1f;
     public float mass = 3f;
 
@@ -47,20 +47,35 @@ public class ParticleSeeker : MonoBehaviour {
                 particleWorldPosition = p.position;
             }
 
-            Vector3 direction = applyGravity(particleWorldPosition);
-            float magnitude = direction.magnitude;
-            Mathf.Clamp(magnitude, 5.0f, 10.0f); //eliminate extreme result for very close or very far objects
+            //simple attractor
+            //Vector3 totalForce = applySimple(particleWorldPosition);
 
-            //Vector3 seekForce = ((direction) * forceMultipler) * Time.deltaTime; //simple seeker
-            float gforce = (g * mass * mass) / direction.magnitude * direction.magnitude;
-            Vector3 seekForce = ((direction) * gforce) * Time.deltaTime;
-            seekForce = seekForce * forceMultiplier; 
+            //gravitional field sim
+            //Vector3 totalForce = applyGravity(particleWorldPosition);
 
-            p.velocity += seekForce;
+            //electric field sim
+            Vector3 totalForce = applyElectric(p);
+
+            //rotate 90 deg right
+            //Vector3 right = Vector3.Cross(totalForce, Vector3.up);
+            //totalForce = Quaternion.AngleAxis(0, right) * totalForce;
+
+            p.velocity += totalForce;
             particles[i] = p;
         }
         ps.SetParticles(particles, particles.Length); //set updated particles into the system
 	}
+
+    Vector3 applySimple(Vector3 particleWorldPosition)
+    {
+        Vector3 direction = Vector3.zero;
+        foreach (GameObject a in attractors)
+        {
+            direction += (a.transform.position - particleWorldPosition).normalized;
+        }
+        Vector3 totalForce = ((direction) * forceMultiplier) * Time.deltaTime;
+        return totalForce;
+    }
 
     Vector3 applyGravity(Vector3 particleWorldPosition)
     {
@@ -69,7 +84,30 @@ public class ParticleSeeker : MonoBehaviour {
         {
             direction += (a.transform.position - particleWorldPosition).normalized;
         }
-        return direction;
+        float magnitude = direction.magnitude;
+        Mathf.Clamp(magnitude, 5.0f, 10.0f); //eliminate extreme result for very close or very far objects
+
+        float gforce = (g * mass * mass) / direction.magnitude * direction.magnitude;
+        Vector3 totalForce = ((direction) * gforce) * Time.deltaTime;
+        totalForce = totalForce * forceMultiplier;
+        return totalForce;
+    }
+
+    Vector3 applyElectric(ParticleSystem.Particle p) {
+        Vector3 totalForce = p.velocity;
+        Vector3 force = Vector3.zero;
+        foreach (GameObject a in attractors)
+        {
+            float dist = Vector3.Distance(p.position, a.transform.position) * 100000;
+            float fieldMag = 99999 / dist * dist;
+            Mathf.Clamp(fieldMag, 0.0f, 5.0f);
+
+            force.x -= fieldMag * (p.position.x - a.transform.position.x) / dist;
+            force.y -= fieldMag * (p.position.y - a.transform.position.y) / dist;
+            force.z -= fieldMag * (p.position.z - a.transform.position.z) / dist;
+        }
+        totalForce = force * forceMultiplier;
+        return totalForce;
     }
 
     void initAttractors()
