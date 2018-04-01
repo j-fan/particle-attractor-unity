@@ -1,6 +1,6 @@
 # particle-attractor
 
-Gravitional particle attractor for unity (work in progress)
+Gravitional particle attractor for unity (work in progress). Features electric and gravitational fields.
 
 Drag script into any particle system as a component
 
