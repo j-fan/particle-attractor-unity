@@ -6,4 +6,4 @@ Drag script into any particle system as a component
 
 Demo: 
 
-<a href= "https://www.youtube.com/watch?v=Ew4ZQPENMAE"> <img src="https://img.youtube.com/vi/Ew4ZQPENMAE/0.jpg"> </a>
+<a href= "https://www.youtube.com/watch?v=Ew4ZQPENMAE"> <img src="https://i.imgur.com/j7RuT1X.gif"> </a>
