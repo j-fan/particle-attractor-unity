@@ -1,6 +1,13 @@
 # particle-attractor
 
-Gravitional particle attractor for unity (work in progress). Features electric and gravitational fields.
+Particle attractor for unity.
+Contains these fields:
+- electric
+- gravitational
+- airflow
+- vortex
+- simple attractor
+
 
 Drag script into any particle system as a component
 
